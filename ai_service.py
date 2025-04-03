@@ -11,7 +11,6 @@ class AIService:
         self.db_client = DatabaseClient()
         
     def generate_system_prompt(self, db_context):
-        """Generate the system prompt with database context."""
         return f"""You are a helpful AI assistant that answers questions about data in a PostgreSQL database.
 Below is the database schema and sample data:
 
@@ -19,7 +18,10 @@ Below is the database schema and sample data:
 
 Please provide accurate answers based on the database structure and sample data shown above.
 If you need to make assumptions, please state them clearly.
-If you cannot answer the question with the given information, please say so."""
+If you cannot answer the question with the given information, please say so. 
+Please provide the answer as if you are talking to a person without a technical background.
+Do not say anything about the database schema or sample data in your answer.
+Be concise and to the point except for when the question is about the sample data."""
 
     def generate_answer(self, question, context_tables=None):
         """Generate an answer to a question using GPT and database context."""
