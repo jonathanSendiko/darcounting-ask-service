@@ -24,12 +24,9 @@ Do not say anything about the database schema or sample data in your answer.
 Be concise and to the point except for when the question is about the sample data."""
 
     def generate_answer(self, question, context_tables=None):
-        """Generate an answer to a question using GPT and database context."""
         try:
-            # Get database context
             db_context = self.db_client.get_database_context(context_tables)
             
-            # Create the conversation
             response = self.client.chat.completions.create(
                 model=Config.GPT_MODEL,
                 messages=[
@@ -40,7 +37,7 @@ Be concise and to the point except for when the question is about the sample dat
                 temperature=Config.TEMPERATURE
             )
             
-            # Extract the answer
+            
             answer = response.choices[0].message.content
             
             return {
@@ -59,5 +56,4 @@ Be concise and to the point except for when the question is about the sample dat
             }
     
     def close(self):
-        """Clean up resources."""
         self.db_client.close() 

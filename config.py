@@ -22,7 +22,6 @@ class Config:
     
     @classmethod
     def validate(cls):
-        """Validate required configuration variables."""
         if not cls.OPENAI_API_KEY:
             raise ValueError("OPENAI_API_KEY must be set in environment variables")
         if not cls.POSTGRES_URI:
