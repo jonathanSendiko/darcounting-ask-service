@@ -17,6 +17,7 @@ class QuestionAnswerer(qa_service_pb2_grpc.QuestionAnswererServicer):
         # Generate answer using AI service
         result = self.ai_service.generate_answer(
             question=request.question,
+            session_id=request.session_id if request.session_id else None,
             context_tables=request.context_tables if request.context_tables else None
         )
         
@@ -27,6 +28,43 @@ class QuestionAnswerer(qa_service_pb2_grpc.QuestionAnswererServicer):
             error=result["error"] or "",
             confidence=result["confidence"]
         )
+    
+    def CreateSession(self, request, context):
+        """Create a new chat session."""
+        logging.info("Creating new chat session")
+        try:
+            session_id = self.ai_service.create_session()
+            return qa_service_pb2.CreateSessionResponse(
+                session_id=session_id,
+                success=True,
+                error=""
+            )
+        except Exception as e:
+            error_msg = f"Failed to create session: {str(e)}"
+            logging.error(error_msg)
+            return qa_service_pb2.CreateSessionResponse(
+                session_id="",
+                success=False,
+                error=error_msg
+            )
+    
+    def DeleteSession(self, request, context):
+        """Delete an existing chat session."""
+        logging.info(f"Deleting session: {request.session_id}")
+        success = self.ai_service.delete_session(request.session_id)
+        
+        if success:
+            return qa_service_pb2.DeleteSessionResponse(
+                success=True,
+                error=""
+            )
+        else:
+            error_msg = f"Failed to delete session: {request.session_id}"
+            logging.error(error_msg)
+            return qa_service_pb2.DeleteSessionResponse(
+                success=False,
+                error=error_msg
+            )
 
 def serve():
     """Start the gRPC server."""

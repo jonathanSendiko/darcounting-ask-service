@@ -6,12 +6,19 @@ package qa_service;
 service QuestionAnswerer {
   // Send a question and receive an answer
   rpc AskQuestion (QuestionRequest) returns (AnswerResponse) {}
+  
+  // Create a new chat session
+  rpc CreateSession (CreateSessionRequest) returns (CreateSessionResponse) {}
+  
+  // Delete an existing chat session
+  rpc DeleteSession (DeleteSessionRequest) returns (DeleteSessionResponse) {}
 }
 
 // The request message containing the question
 message QuestionRequest {
   string question = 1;  // The question text
   repeated string context_tables = 2;  // Optional: specific tables to consider
+  string session_id = 3;  // Optional: session ID for continuous conversation
 }
 
 // The response message containing the answer
@@ -20,4 +27,25 @@ message AnswerResponse {
   bool success = 2;  // Whether the operation was successful
   string error = 3;  // Error message if any
   float confidence = 4;  // Confidence score of the answer
+}
+
+// Request to create a new session
+message CreateSessionRequest {}
+
+// Response containing the new session ID
+message CreateSessionResponse {
+  string session_id = 1;  // The unique session identifier
+  bool success = 2;  // Whether the operation was successful
+  string error = 3;  // Error message if any
+}
+
+// Request to delete a session
+message DeleteSessionRequest {
+  string session_id = 1;  // The session ID to delete
+}
+
+// Response for session deletion
+message DeleteSessionResponse {
+  bool success = 1;  // Whether the operation was successful
+  string error = 2;  // Error message if any
 } 

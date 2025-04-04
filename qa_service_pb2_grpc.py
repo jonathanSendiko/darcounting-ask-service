@@ -20,6 +20,16 @@ class QuestionAnswererStub(object):
                 request_serializer=qa__service__pb2.QuestionRequest.SerializeToString,
                 response_deserializer=qa__service__pb2.AnswerResponse.FromString,
                 )
+        self.CreateSession = channel.unary_unary(
+                '/qa_service.QuestionAnswerer/CreateSession',
+                request_serializer=qa__service__pb2.CreateSessionRequest.SerializeToString,
+                response_deserializer=qa__service__pb2.CreateSessionResponse.FromString,
+                )
+        self.DeleteSession = channel.unary_unary(
+                '/qa_service.QuestionAnswerer/DeleteSession',
+                request_serializer=qa__service__pb2.DeleteSessionRequest.SerializeToString,
+                response_deserializer=qa__service__pb2.DeleteSessionResponse.FromString,
+                )
 
 
 class QuestionAnswererServicer(object):
@@ -33,6 +43,20 @@ class QuestionAnswererServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def CreateSession(self, request, context):
+        """Create a new chat session
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DeleteSession(self, request, context):
+        """Delete an existing chat session
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_QuestionAnswererServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -40,6 +64,16 @@ def add_QuestionAnswererServicer_to_server(servicer, server):
                     servicer.AskQuestion,
                     request_deserializer=qa__service__pb2.QuestionRequest.FromString,
                     response_serializer=qa__service__pb2.AnswerResponse.SerializeToString,
+            ),
+            'CreateSession': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateSession,
+                    request_deserializer=qa__service__pb2.CreateSessionRequest.FromString,
+                    response_serializer=qa__service__pb2.CreateSessionResponse.SerializeToString,
+            ),
+            'DeleteSession': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteSession,
+                    request_deserializer=qa__service__pb2.DeleteSessionRequest.FromString,
+                    response_serializer=qa__service__pb2.DeleteSessionResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -66,5 +100,39 @@ class QuestionAnswerer(object):
         return grpc.experimental.unary_unary(request, target, '/qa_service.QuestionAnswerer/AskQuestion',
             qa__service__pb2.QuestionRequest.SerializeToString,
             qa__service__pb2.AnswerResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def CreateSession(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/qa_service.QuestionAnswerer/CreateSession',
+            qa__service__pb2.CreateSessionRequest.SerializeToString,
+            qa__service__pb2.CreateSessionResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def DeleteSession(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/qa_service.QuestionAnswerer/DeleteSession',
+            qa__service__pb2.DeleteSessionRequest.SerializeToString,
+            qa__service__pb2.DeleteSessionResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
