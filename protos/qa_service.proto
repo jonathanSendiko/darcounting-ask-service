@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package qa_service;
 
+option go_package = "github.com/jonathanSendiko/darcounting/proto/ask;ask";
+
 // The question answering service definition
 service QuestionAnswerer {
   // Send a question and receive an answer
