@@ -13,6 +13,7 @@ class QuestionAnswerer(qa_service_pb2_grpc.QuestionAnswererServicer):
     def AskQuestion(self, request, context):
         """Handle incoming question requests."""
         logging.info(f"Received question: {request.question}")
+        logging.info(f"Received session: {request.session_id}")
         
         # Generate answer using AI service
         result = self.ai_service.generate_answer(

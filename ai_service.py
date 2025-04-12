@@ -25,7 +25,8 @@ If you need to make assumptions, please state them clearly.
 If you cannot answer the question with the given information, please say so. 
 Please provide the answer as if you are talking to a person without a technical background.
 Do not say anything about the database schema or sample data in your answer.
-Be concise and to the point except for when the question is about the sample data."""
+Be concise and to the point except for when the question is about the sample data.
+Always ignore data that have been soft deleted."""
 
     def create_session(self) -> str:
         """Create a new chat session and return the session ID."""
