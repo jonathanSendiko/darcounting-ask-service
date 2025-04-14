@@ -1,5 +1,6 @@
 import psycopg2
-from psycopg2.extras import RealDictCursor
+from psycopg2.extras import RealDictCursor, Json
+import json
 from config import Config
 
 class DatabaseClient:
@@ -64,7 +65,7 @@ class DatabaseClient:
                     session_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
                     last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                    context TEXT[]
+                    context JSONB[]
                 );
             """)
             self.conn.commit()
@@ -74,7 +75,7 @@ class DatabaseClient:
         with self.conn.cursor() as cur:
             cur.execute("""
                 INSERT INTO sessions (context) 
-                VALUES (ARRAY[]::TEXT[]) 
+                VALUES (ARRAY[]::JSONB[]) 
                 RETURNING session_id;
             """)
             self.conn.commit()
@@ -89,17 +90,50 @@ class DatabaseClient:
                 WHERE session_id = %s;
             """, (session_id,))
             result = cur.fetchone()
-            return result[0] if result else []
+            # Ensure we're returning a list, even if the database has NULL or empty array
+            if result is None or result[0] is None:
+                return []
+            
+            # Convert PostgreSQL array of JSONB to Python list of dicts
+            try:
+                context_list = []
+                for item in result[0]:
+                    if isinstance(item, dict):
+                        context_list.append(item)
+                    elif isinstance(item, str):
+                        # Try to parse JSON string
+                        try:
+                            context_list.append(json.loads(item))
+                        except:
+                            pass
+                return context_list
+            except Exception as e:
+                print(f"Error parsing session context: {e}")
+                return []
 
     def update_session_context(self, session_id, new_context):
         """Update the context for a specific session."""
+        # Ensure new_context is a valid list structure before saving
+        if not isinstance(new_context, list):
+            new_context = []
+            
+        # Convert each dict in the list to JSON format
+        json_context = []
+        for item in new_context:
+            if isinstance(item, dict):
+                try:
+                    json_context.append(Json(item))
+                except:
+                    # Skip invalid items
+                    pass
+            
         with self.conn.cursor() as cur:
             cur.execute("""
                 UPDATE sessions 
-                SET context = %s, 
+                SET context = %s::jsonb[], 
                     last_updated = CURRENT_TIMESTAMP 
                 WHERE session_id = %s;
-            """, (new_context, session_id))
+            """, (json_context, session_id))
             self.conn.commit()
 
     def delete_session(self, session_id):
@@ -112,4 +146,4 @@ class DatabaseClient:
             self.conn.commit()
 
     def close(self):
-        self.conn.close() 
+        self.conn.close()

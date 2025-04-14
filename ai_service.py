@@ -3,6 +3,7 @@ from config import Config
 from database import DatabaseClient
 from typing import Optional, List, Dict
 import uuid
+import logging
 
 class AIService:
     def __init__(self):
@@ -43,12 +44,22 @@ Always ignore data that have been soft deleted."""
                 try:
                     uuid.UUID(session_id)  # Validate UUID format
                     context = self.db_client.get_session_context(session_id)
-                    messages.extend(context)
+                    # Ensure context is a list of properly formatted message dictionaries
+                    for item in context:
+                        if isinstance(item, dict) and "role" in item and "content" in item:
+                            messages.append(item)
                 except ValueError:
                     return {
-                        "answer": None,
+                        "answer": "",
                         "success": False,
                         "error": "Invalid session ID format",
+                        "confidence": 0.0
+                    }
+                except Exception as e:
+                    return {
+                        "answer": "",
+                        "success": False,
+                        "error": f"Session context error: {str(e)}",
                         "confidence": 0.0
                     }
             
@@ -66,21 +77,31 @@ Always ignore data that have been soft deleted."""
             
             # If within a session, update the context
             if session_id:
-                messages.append({"role": "assistant", "content": answer})
-                self.db_client.update_session_context(session_id, messages[1:])  # Exclude system prompt
+                try:
+                    # Only add the new messages to context
+                    new_message = {"role": "assistant", "content": answer}
+                    question_message = {"role": "user", "content": question}
+                    # Get fresh context to avoid issues
+                    current_context = self.db_client.get_session_context(session_id)
+                    # Add only the new messages
+                    updated_context = current_context + [question_message, new_message]
+                    self.db_client.update_session_context(session_id, updated_context)
+                except Exception as e:
+                    logging.error(f"Failed to update session context: {str(e)}")
+                    # Continue despite session update error
             
             return {
                 "answer": answer,
                 "success": True,
-                "error": None,
+                "error": "",
                 "confidence": float(response.choices[0].finish_reason == "stop")
             }
             
         except Exception as e:
             return {
-                "answer": None,
+                "answer": "",
                 "success": False,
-                "error": str(e),
+                "error": f"Error generating answer: {str(e)}",
                 "confidence": 0.0
             }
     
@@ -94,4 +115,4 @@ Always ignore data that have been soft deleted."""
             return False
     
     def close(self):
-        self.db_client.close() 
+        self.db_client.close()

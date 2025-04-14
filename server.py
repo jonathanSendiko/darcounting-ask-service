@@ -15,20 +15,35 @@ class QuestionAnswerer(qa_service_pb2_grpc.QuestionAnswererServicer):
         logging.info(f"Received question: {request.question}")
         logging.info(f"Received session: {request.session_id}")
         
-        # Generate answer using AI service
-        result = self.ai_service.generate_answer(
-            question=request.question,
-            session_id=request.session_id if request.session_id else None,
-            context_tables=request.context_tables if request.context_tables else None
-        )
-        
-        # Create response
-        return qa_service_pb2.AnswerResponse(
-            answer=result["answer"] or "",
-            success=result["success"],
-            error=result["error"] or "",
-            confidence=result["confidence"]
-        )
+        try:
+            # Generate answer using AI service
+            result = self.ai_service.generate_answer(
+                question=request.question,
+                session_id=request.session_id if request.session_id else None,
+                context_tables=list(request.context_tables) if request.context_tables else None
+            )
+            
+            # Create response with proper type handling
+            answer = result.get("answer", "")
+            success = result.get("success", False)
+            error = result.get("error", "")
+            confidence = float(result.get("confidence", 0.0))
+            
+            return qa_service_pb2.AnswerResponse(
+                answer=answer,
+                success=success,
+                error=error,
+                confidence=confidence
+            )
+        except Exception as e:
+            error_msg = f"Error processing question: {str(e)}"
+            logging.error(error_msg)
+            return qa_service_pb2.AnswerResponse(
+                answer="",
+                success=False,
+                error=error_msg,
+                confidence=0.0
+            )
     
     def CreateSession(self, request, context):
         """Create a new chat session."""
@@ -92,4 +107,4 @@ def serve():
     server.wait_for_termination()
 
 if __name__ == '__main__':
-    serve() 
+    serve()
